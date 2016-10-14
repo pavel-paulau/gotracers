@@ -15,7 +15,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func writeFile(data []byte) error {
+func writeTracer(data []byte) error {
 	n, err := traceFile.Write(data)
 	if err == nil && n < len(data) {
 		return io.ErrShortWrite
@@ -23,19 +23,22 @@ func writeFile(data []byte) error {
 	return err
 }
 
-func StartTracer(tag string, id int64) (int64, error) {
-	if id < 0 {
-		id = rand.Int63()
+// StartTracer emits a entry tracer event. If unique span ID is not provided,
+// StartTracer generates a random 64-bit integer ID.
+func StartTracer(tag string, spanId int64) (int64, error) {
+	if spanId < 0 {
+		spanId = rand.Int63()
 	}
-	tracer := []byte(">:" + strconv.FormatInt(id, 10) + ":" + tag + "::")
+	tracer := []byte(">:" + strconv.FormatInt(spanId, 10) + ":" + tag + "::")
 
-	err := writeFile(tracer)
+	err := writeTracer(tracer)
 
-	return id, err
+	return spanId, err
 }
 
-func EndTracer(tag string, id int64) error {
-	tracer := []byte("<:" + strconv.FormatInt(id, 10) + ":" + tag + "::")
+// EndTracer emits an exit tracer event for user-provided span ID.
+func EndTracer(tag string, spanId int64) error {
+	tracer := []byte("<:" + strconv.FormatInt(spanId, 10) + ":" + tag + "::")
 
-	return writeFile(tracer)
+	return writeTracer(tracer)
 }

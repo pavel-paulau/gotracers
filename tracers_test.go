@@ -104,7 +104,7 @@ func BenchmarkWriteToFile(b *testing.B) {
 	traceFile, _ = os.OpenFile(os.DevNull, os.O_WRONLY, 0644)
 
 	for n := 0; n < b.N; n++ {
-		writeFile(data)
+		writeTracer(data)
 	}
 }
 
