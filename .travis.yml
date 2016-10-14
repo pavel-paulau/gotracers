@@ -1,0 +1,8 @@
+sudo: false
+language: go
+go:
+  - tip
+install:
+  - go get github.com/mattn/goveralls
+script:
+  - $HOME/gopath/bin/goveralls -v -repotoken $COVERALLS_TOKEN
