@@ -15,25 +15,27 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+func writeFile(data []byte) error {
+	n, err := traceFile.Write(data)
+	if err == nil && n < len(data) {
+		return io.ErrShortWrite
+	}
+	return err
+}
+
 func StartTracer(tag string, id int64) (int64, error) {
 	if id < 0 {
 		id = rand.Int63()
 	}
-	bs := []byte(">:" + strconv.FormatInt(id, 10) + ":" + tag + "::")
+	tracer := []byte(">:" + strconv.FormatInt(id, 10) + ":" + tag + "::")
 
-	n, err := traceFile.Write(bs)
-	if err == nil && n < len(bs) {
-		return id, io.ErrShortWrite
-	}
+	err := writeFile(tracer)
+
 	return id, err
 }
 
 func EndTracer(tag string, id int64) error {
-	bs := []byte("<:" + strconv.FormatInt(id, 10) + ":" + tag + "::")
+	tracer := []byte("<:" + strconv.FormatInt(id, 10) + ":" + tag + "::")
 
-	n, err := traceFile.Write(bs)
-	if err == nil && n < len(bs) {
-		return io.ErrShortWrite
-	}
-	return err
+	return writeFile(tracer)
 }

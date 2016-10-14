@@ -98,7 +98,17 @@ func BenchmarkBuffer(b *testing.B) {
 		buffer.WriteString("::")
 	}
 }
+
 func BenchmarkWriteToFile(b *testing.B) {
+	data := []byte(">:1234567890:mytag::")
+	traceFile, _ = os.OpenFile(os.DevNull, os.O_WRONLY, 0644)
+
+	for n := 0; n < b.N; n++ {
+		writeFile(data)
+	}
+}
+
+func BenchmarkUtilWriteToFile(b *testing.B) {
 	data := []byte(">:1234567890:mytag::")
 
 	for n := 0; n < b.N; n++ {
