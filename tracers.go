@@ -1,4 +1,4 @@
-package gotracers
+package tracers
 
 import (
 	"io"
