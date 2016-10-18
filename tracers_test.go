@@ -2,6 +2,7 @@ package tracers
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -10,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestStartTracer(t *testing.T) {
+func TestStart(t *testing.T) {
 	var err error
 	traceFile, err = ioutil.TempFile(".", "tracers")
 	if err != nil {
@@ -19,7 +20,7 @@ func TestStartTracer(t *testing.T) {
 	defer traceFile.Close()
 	defer os.Remove(traceFile.Name())
 
-	id, err := StartTracer("mytag", -1)
+	id, err := Start("mytag", -1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -35,7 +36,7 @@ func TestStartTracer(t *testing.T) {
 	}
 }
 
-func TestEndTracer(t *testing.T) {
+func TestTracer(t *testing.T) {
 	var err error
 	traceFile, err = ioutil.TempFile(".", "tracers")
 	if err != nil {
@@ -44,7 +45,7 @@ func TestEndTracer(t *testing.T) {
 	defer traceFile.Close()
 	defer os.Remove(traceFile.Name())
 
-	if err = EndTracer("mytag", 1234567890); err != nil {
+	if err = End("mytag", 1234567890); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -55,6 +56,89 @@ func TestEndTracer(t *testing.T) {
 
 	if string(bs) != "<:1234567890:mytag::" {
 		t.Fatalf("unexpected string: %v", string(bs))
+	}
+}
+
+func TestStartWithContext(t *testing.T) {
+	var err error
+	traceFile, err = ioutil.TempFile(".", "tracers")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer traceFile.Close()
+	defer os.Remove(traceFile.Name())
+
+	ctx := context.WithValue(context.TODO(), "span", int64(1234567890))
+
+	newCtx, err := StartWithContext(ctx, "mytag")
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	spanId, ok := newCtx.Value("span").(int64)
+	if !ok {
+		t.Fatal("span is missing")
+	}
+
+	if spanId != int64(1234567890) {
+		t.Fatalf("unxpected span id: %v", spanId)
+	}
+}
+
+func TestStartWithEmptyContext(t *testing.T) {
+	var err error
+	traceFile, err = ioutil.TempFile(".", "tracers")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer traceFile.Close()
+	defer os.Remove(traceFile.Name())
+
+	ctx := context.TODO()
+
+	newCtx, err := StartWithContext(ctx, "mytag")
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if _, ok := newCtx.Value("span").(int64); !ok {
+		t.Fatal("span is missing")
+	}
+}
+
+func TestEndWithContext(t *testing.T) {
+	var err error
+	traceFile, err = ioutil.TempFile(".", "tracers")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer traceFile.Close()
+	defer os.Remove(traceFile.Name())
+
+	ctx := context.WithValue(context.TODO(), "span", int64(1234567890))
+
+	err = EndWithContext(ctx, "mytag")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestEndWithBadContext(t *testing.T) {
+	var err error
+	traceFile, err = ioutil.TempFile(".", "tracers")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer traceFile.Close()
+	defer os.Remove(traceFile.Name())
+
+	ctx := context.TODO()
+
+	err = EndWithContext(ctx, "1234567890")
+	if err == nil {
+		t.Fatal("unexpected success")
 	}
 }
 
@@ -116,15 +200,39 @@ func BenchmarkUtilWriteToFile(b *testing.B) {
 	}
 }
 
-func BenchmarkStartTracer(b *testing.B) {
+func BenchmarkStart(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		StartTracer("mytag", -1)
+		Start("mytag", -1)
 	}
 }
 
-func BenchmarkEndTracer(b *testing.B) {
+func BenchmarkEnd(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		EndTracer("mytag", 1234567890)
+		End("mytag", 1234567890)
+	}
+}
+
+func BenchmarkStartWithContext(b *testing.B) {
+	ctx := context.WithValue(context.TODO(), "span", 1234567890)
+
+	for n := 0; n < b.N; n++ {
+		StartWithContext(ctx, "mytag")
+	}
+}
+
+func BenchmarkStartWithEmptyContext(b *testing.B) {
+	ctx := context.TODO()
+
+	for n := 0; n < b.N; n++ {
+		StartWithContext(ctx, "mytag")
+	}
+}
+
+func BenchmarkEndWithContext(b *testing.B) {
+	ctx := context.WithValue(context.TODO(), "span", 1234567890)
+
+	for n := 0; n < b.N; n++ {
+		EndWithContext(ctx, "mytag")
 	}
 }
 
