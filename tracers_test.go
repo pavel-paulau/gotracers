@@ -76,13 +76,13 @@ func TestStartWithContext(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	spanId, ok := newCtx.Value("span").(int64)
+	spanID, ok := newCtx.Value("span").(int64)
 	if !ok {
 		t.Fatal("span is missing")
 	}
 
-	if spanId != int64(1234567890) {
-		t.Fatalf("unxpected span id: %v", spanId)
+	if spanID != int64(1234567890) {
+		t.Fatalf("unxpected span id: %v", spanID)
 	}
 }
 

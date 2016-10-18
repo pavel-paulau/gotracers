@@ -27,20 +27,20 @@ func writeTracer(data []byte) error {
 
 // Start emits an entry tracer event. If unique span identifier is not provided,
 // StartTracer generates a random 64-bit integer ID.
-func Start(tag string, spanId int64) (int64, error) {
-	if spanId < 0 {
-		spanId = rand.Int63()
+func Start(tag string, spanID int64) (int64, error) {
+	if spanID < 0 {
+		spanID = rand.Int63()
 	}
-	tracer := []byte(">:" + strconv.FormatInt(spanId, 10) + ":" + tag + "::")
+	tracer := []byte(">:" + strconv.FormatInt(spanID, 10) + ":" + tag + "::")
 
 	err := writeTracer(tracer)
 
-	return spanId, err
+	return spanID, err
 }
 
 // End emits an exit tracer event for the user-provided span identifier.
-func End(tag string, spanId int64) error {
-	tracer := []byte("<:" + strconv.FormatInt(spanId, 10) + ":" + tag + "::")
+func End(tag string, spanID int64) error {
+	tracer := []byte("<:" + strconv.FormatInt(spanID, 10) + ":" + tag + "::")
 
 	return writeTracer(tracer)
 }
@@ -50,32 +50,32 @@ func End(tag string, spanId int64) error {
 func StartWithContext(ctx context.Context, tag string) (context.Context, error) {
 	span, ok := ctx.Value("span").(int64)
 
-	var spanId int64
+	var spanID int64
 	if ok {
-		spanId = span
+		spanID = span
 	} else {
-		spanId = rand.Int63()
+		spanID = rand.Int63()
 	}
 
-	tracer := []byte(">:" + strconv.FormatInt(spanId, 10) + ":" + tag + "::")
+	tracer := []byte(">:" + strconv.FormatInt(spanID, 10) + ":" + tag + "::")
 
 	err := writeTracer(tracer)
 
 	if ok {
 		return ctx, err
 	}
-	return context.WithValue(ctx, "span", spanId), err
+	return context.WithValue(ctx, "span", spanID), err
 }
 
 // EndWithContext emits an exit tracer event for the user-provided context.
 // EndTracer returns an error if the parent context doesn't have a span identifier.
 func EndWithContext(ctx context.Context, tag string) error {
-	spanId, ok := ctx.Value("span").(int64)
+	spanID, ok := ctx.Value("span").(int64)
 	if !ok {
 		return errors.New("missing span in context")
 	}
 
-	tracer := []byte("<:" + strconv.FormatInt(spanId, 10) + ":" + tag + "::")
+	tracer := []byte("<:" + strconv.FormatInt(spanID, 10) + ":" + tag + "::")
 
 	return writeTracer(tracer)
 }
