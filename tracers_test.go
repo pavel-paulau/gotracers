@@ -206,6 +206,12 @@ func BenchmarkStart(b *testing.B) {
 	}
 }
 
+func BenchmarkStartCustom(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Start("mytag", 1234567890)
+	}
+}
+
 func BenchmarkEnd(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		End("mytag", 1234567890)
@@ -213,7 +219,7 @@ func BenchmarkEnd(b *testing.B) {
 }
 
 func BenchmarkStartWithContext(b *testing.B) {
-	ctx := context.WithValue(context.TODO(), "span", 1234567890)
+	ctx := context.WithValue(context.TODO(), "span", int64(1234567890))
 
 	for n := 0; n < b.N; n++ {
 		StartWithContext(ctx, "mytag")
@@ -229,7 +235,7 @@ func BenchmarkStartWithEmptyContext(b *testing.B) {
 }
 
 func BenchmarkEndWithContext(b *testing.B) {
-	ctx := context.WithValue(context.TODO(), "span", 1234567890)
+	ctx := context.WithValue(context.TODO(), "span", int64(1234567890))
 
 	for n := 0; n < b.N; n++ {
 		EndWithContext(ctx, "mytag")

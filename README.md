@@ -57,3 +57,13 @@ func myFunc() {
 }
 
 ```
+# Benchmarks
+
+```
+BenchmarkStart-8                   	 5000000	       323 ns/op	      31 B/op	       1 allocs/op
+BenchmarkStartCustom-8             	 5000000	       286 ns/op	      16 B/op	       1 allocs/op
+BenchmarkEnd-8                     	 5000000	       282 ns/op	      16 B/op	       1 allocs/op
+BenchmarkStartWithEmptyContext-8   	 3000000	       517 ns/op	     119 B/op	       5 allocs/op
+BenchmarkStartWithContext-8        	 5000000	       354 ns/op	      32 B/op	       2 allocs/op
+BenchmarkEndWithContext-8          	 5000000	       352 ns/op	      32 B/op	       2 allocs/op
+```
