@@ -19,7 +19,57 @@ func TestStart(t *testing.T) {
 	defer traceFile.Close()
 	defer os.Remove(traceFile.Name())
 
-	id, err := Start("mytag", -1)
+	id, err := Start("mytag")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	bs, err := ioutil.ReadFile(traceFile.Name())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := fmt.Sprintf(">:%d:mytag::", id)
+	if string(bs) != expected {
+		t.Fatalf("exptected %v, got %v", expected, string(bs))
+	}
+}
+
+func TestStartInt(t *testing.T) {
+	var err error
+	traceFile, err = ioutil.TempFile(".", "tracers")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer traceFile.Close()
+	defer os.Remove(traceFile.Name())
+
+	err = StartInt("mytag", 1234567890)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	bs, err := ioutil.ReadFile(traceFile.Name())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := fmt.Sprintf(">:%d:mytag::", 1234567890)
+	if string(bs) != expected {
+		t.Fatalf("exptected %v, got %v", expected, string(bs))
+	}
+}
+
+func TestStartStr(t *testing.T) {
+	var err error
+	traceFile, err = ioutil.TempFile(".", "tracers")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer traceFile.Close()
+	defer os.Remove(traceFile.Name())
+
+	id, err := StartStr("mytag", "fd4086fa-9ed0-465d-9a99-422c5d8e9506")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -118,13 +168,19 @@ func BenchmarkUtilWriteToFile(b *testing.B) {
 
 func BenchmarkStart(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		Start("mytag", -1)
+		Start("mytag")
 	}
 }
 
-func BenchmarkStartCustom(b *testing.B) {
+func BenchmarkStartInt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		Start("mytag", 1234567890)
+		StartInt("mytag", 1234567890)
+	}
+}
+
+func BenchmarkStartStr(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		StartStr("mytag", "fd4086fa-9ed0-465d-9a99-422c5d8e9506")
 	}
 }
 
@@ -143,5 +199,12 @@ func BenchmarkRandInt(b *testing.B) {
 func BenchmarkItoa(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		strconv.FormatInt(1234567890, 10)
+	}
+}
+
+func BenchmarkHash(b *testing.B) {
+	s := []byte("fd4086fa-9ed0-465d-9a99-422c5d8e9506")
+	for n := 0; n < b.N; n++ {
+		hash(s)
 	}
 }

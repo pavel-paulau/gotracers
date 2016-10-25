@@ -1,7 +1,9 @@
 package tracers
 
 import (
+	"hash/fnv"
 	"io"
+	"math"
 	"math/rand"
 	"os"
 	"strconv"
@@ -23,22 +25,46 @@ func writeTracer(data []byte) error {
 	return err
 }
 
-// Start emits an entry tracer event. If unique span identifier is not provided,
-// StartTracer generates a random 64-bit integer ID.
-func Start(tag string, spanID int64) (int64, error) {
-	if spanID < 0 {
-		spanID = rand.Int63()
-	}
-	tracer := []byte(">:" + strconv.FormatInt(spanID, 10) + ":" + tag + "::")
+func hash(s []byte) uint64 {
+	h := fnv.New64a()
+	h.Write(s)
+	return h.Sum64()
+}
+
+func iTou(i int64) uint64 {
+	return uint64(math.MaxInt64 + i)
+}
+
+// Start generates a random span identifier and emits an entry tracer event.
+func Start(tag string) (uint64, error) {
+	spanID := iTou(rand.Int63())
+	tracer := []byte(">:" + strconv.FormatUint(spanID, 10) + ":" + tag + "::")
 
 	err := writeTracer(tracer)
 
 	return spanID, err
 }
 
+// StartInt emits an entry tracer event using user-specified span identifier.
+func StartInt(tag string, spanID uint64) error {
+	tracer := []byte(">:" + strconv.FormatUint(spanID, 10) + ":" + tag + "::")
+
+	return writeTracer(tracer)
+}
+
+// StartStr emits an entry tracer event using user-specified span identifier.
+func StartStr(tag string, spanID string) (uint64, error) {
+	intID := hash([]byte(spanID))
+	tracer := []byte(">:" + strconv.FormatUint(intID, 10) + ":" + tag + "::")
+
+	err := writeTracer(tracer)
+
+	return intID, err
+}
+
 // End emits an exit tracer event for the user-provided span identifier.
-func End(tag string, spanID int64) error {
-	tracer := []byte("<:" + strconv.FormatInt(spanID, 10) + ":" + tag + "::")
+func End(tag string, spanID uint64) error {
+	tracer := []byte("<:" + strconv.FormatUint(spanID, 10) + ":" + tag + "::")
 
 	return writeTracer(tracer)
 }

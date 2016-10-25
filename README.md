@@ -14,7 +14,7 @@ Auto-generated span identifiers:
 
 ```
 func myFunc() {
-	spanID, err := tracers.Start("mytag", -1)
+	spanID, err := tracers.Start("mytag")
 	handleErr(err)
 	defer tracers.End("mytag", spanID)
 
@@ -25,8 +25,8 @@ func myFunc() {
 Custom span identifiers:
 
 ```
-func myFunc(uniqueId int64) {
-	_, err := tracers.Start("mytag", uniqueId)
+func myFunc(uniqueId uint64) {
+	err := tracers.StartInt("mytag", uniqueId)
 	handleErr(err)
 	defer tracers.End("mytag", uniqueId)
 
@@ -34,33 +34,21 @@ func myFunc(uniqueId int64) {
 }
 ```
 
-Using context:
-
 ```
-func myFunc(ctx context.Context) {
-	_, err := tracers.StartWithContext(ctx, "mytag")
+func myFunc(uniqueId string) {
+	spanID, err := tracers.StartStr("mytag", uniqueId)
 	handleErr(err)
-	defer tracers.EndWithContext(ctx, "mytag")
+	defer tracers.End("mytag", spanID)
 
 	...
 }
-
 ```
 
-```
-func myFunc() {
-	ctx, err := tracers.StartWithContext(context.TODO(), "mytag")
-	handleErr(err)
-	defer tracers.EndWithContext(ctx, "mytag")
-
-	...
-}
-
-```
 # Benchmarks
 
 ```
-BenchmarkStart-8                   	 5000000	       323 ns/op	      31 B/op	       1 allocs/op
-BenchmarkStartCustom-8             	 5000000	       286 ns/op	      16 B/op	       1 allocs/op
-BenchmarkEnd-8                     	 5000000	       282 ns/op	      16 B/op	       1 allocs/op
+BenchmarkStart-8          	 3000000	       386 ns/op	      32 B/op	       1 allocs/op
+BenchmarkStartInt-8       	 5000000	       329 ns/op	      16 B/op	       1 allocs/op
+BenchmarkStartStr-8       	 3000000	       523 ns/op	      88 B/op	       3 allocs/op
+BenchmarkEnd-8            	 5000000	       363 ns/op	      16 B/op	       1 allocs/op
 ```
